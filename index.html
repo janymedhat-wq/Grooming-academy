@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Academy Mardan | Enrollment Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #000000;
+            --accent: #2563eb;
+        }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #ffffff; 
+            color: var(--primary); 
+            scroll-behavior: smooth;
+        }
+        
+        /* Neo-Brutalism Design System */
+        .neo-card {
+            border: 3px solid #000;
+            box-shadow: 8px 8px 0px #000;
+            transition: all 0.2s ease;
+        }
+        .neo-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 12px 12px 0px #000;
+        }
+        .neo-btn {
+            border: 3px solid #000;
+            box-shadow: 4px 4px 0px #000;
+            transition: all 0.1s;
+            cursor: pointer;
+        }
+        .neo-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #000;
+        }
+
+        /* Views */
+        #adminView, #admissionView, #successView { display: none; }
+
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
+
+        .status-received { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border: 2px solid #000; font-weight: 800; font-size: 10px; }
+        .status-reviewed { background: #dcfce7; color: #15803d; padding: 4px 10px; border: 2px solid #000; font-weight: 800; font-size: 10px; }
+        
+        .error-shake { animation: shake 0.5s; border-color: #ef4444 !important; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="border-b-4 border-black sticky top-0 bg-white z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showView('home')">
+                <div class="bg-black text-white p-2 font-black rotate-3">PGA</div>
+                <span class="font-extrabold text-xl tracking-tighter uppercase italic text-black">Professional Academy</span>
+            </div>
+            <div class="hidden md:flex gap-8 font-bold text-xs uppercase tracking-widest">
+                <a href="#courses" class="hover:text-accent">Courses</a>
+                <a href="#founder" class="hover:text-accent">Founder</a>
+                <a href="#location" class="hover:text-accent">Location</a>
+                <button onclick="showView('admin')" class="text-blue-600 border-b-2 border-blue-600">Admin Database</button>
+            </div>
+            <button onclick="showView('admission')" class="neo-btn bg-black text-white px-6 py-2 font-bold uppercase text-xs">
+                Apply Now
+            </button>
+        </div>
+    </nav>
+
+    <!-- 1. HOME VIEW -->
+    <main id="homeView">
+        <header class="py-20 px-6 border-b-4 border-black bg-white">
+            <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h1 class="text-5xl md:text-7xl font-black leading-none mb-6 italic uppercase">
+                        Start Your <br><span class="text-blue-600">Career Here.</span>
+                    </h1>
+                    <p class="text-xl font-medium text-gray-700 mb-10 max-w-lg">
+                        Mardan's leading center for DIT, Computer Science, NEBOSH, IOSH, and Professional Tutoring. Enroll today to secure your future.
+                    </p>
+                    <div class="flex gap-4">
+                        <button onclick="showView('admission')" class="neo-btn bg-blue-600 text-white px-10 py-5 font-black text-xl uppercase italic">Online Enrollment</button>
+                    </div>
+                </div>
+                <div class="neo-card bg-yellow-400 aspect-square flex flex-col items-center justify-center p-12 rotate-2">
+                    <span class="text-8xl mb-4">📝</span>
+                    <p class="font-black text-3xl text-center uppercase">Join Our Next Batch</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Founder Section -->
+        <section id="founder" class="py-24 px-6 bg-white border-b-4 border-black">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid md:grid-cols-12 gap-12 items-center">
+                    <div class="md:col-span-4 flex justify-center">
+                        <div class="neo-card bg-gray-200 w-full max-w-sm aspect-[4/5] relative overflow-hidden group">
+                            <div class="absolute inset-0 flex items-center justify-center text-gray-400 font-bold uppercase text-center p-6">
+                                <span>Place Uncle's Photo Here</span>
+                            </div>
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800" alt="Founder" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" onerror="this.style.display='none'">
+                            <div class="absolute bottom-4 left-4 right-4 bg-black text-white p-3 font-black text-sm uppercase italic">
+                                Founder & CEO
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-8">
+                        <div class="inline-block bg-blue-600 text-white px-4 py-1 font-black text-xs uppercase mb-4 rotate-[-1deg]">
+                            Founder's Message
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-black mb-6 uppercase italic leading-tight">
+                            "Education is the strongest <span class="text-blue-600 underline">foundation</span> for our youth."
+                        </h2>
+                        <div class="neo-card bg-yellow-50 p-8 relative">
+                            <span class="absolute -top-6 -left-4 text-7xl text-black opacity-20 font-serif">"</span>
+                            <p class="text-lg font-bold text-gray-800 leading-relaxed mb-6">
+                                Welcome to Professional Academy. Our mission is to bring international standards of technical education and health & safety training right here to Mardan. Whether you are seeking a government-recognized DIT diploma or global safety certifications like NEBOSH, we are here to guide you to a successful career path.
+                            </p>
+                            <p class="font-black text-xl uppercase italic">— [Founder Name]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Courses -->
+        <section id="courses" class="py-24 px-6 bg-gray-50 border-b-4 border-black">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="text-4xl font-black mb-16 uppercase italic text-center md:text-left">Our Programs</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="neo-card bg-white p-8">
+                        <span class="bg-blue-600 text-white px-2 py-1 text-xs font-bold uppercase">Technical</span>
+                        <h3 class="text-2xl font-black mt-4 mb-2">DIT & Computer Science</h3>
+                        <p class="text-gray-600 font-semibold">One-year diploma and short computer courses for modern office and tech jobs.</p>
+                    </div>
+                    <div class="neo-card bg-white p-8">
+                        <span class="bg-red-600 text-white px-2 py-1 text-xs font-bold uppercase">Safety</span>
+                        <h3 class="text-2xl font-black mt-4 mb-2">NEBOSH & IOSH</h3>
+                        <p class="text-gray-600 font-semibold">International Health and Safety certifications recognized worldwide.</p>
+                    </div>
+                    <div class="neo-card bg-white p-8">
+                        <span class="bg-green-600 text-white px-2 py-1 text-xs font-bold uppercase">Tutoring</span>
+                        <h3 class="text-2xl font-black mt-4 mb-2">Academic Coaching</h3>
+                        <p class="text-gray-600 font-semibold">Expert guidance in Mathematics, Physics, and English for all board levels.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Location -->
+        <section id="location" class="py-24 px-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h2 class="text-4xl font-black mb-8 uppercase italic">Locate the Academy</h2>
+                        <div class="space-y-6 text-lg font-bold">
+                            <p>📍 Tawab Market, Gujjar Garhi Road, Baghdada, Mardan</p>
+                            <p>📞 +92 (000) 000-0000</p>
+                            <div class="neo-card bg-gray-50 p-6 mt-8">
+                                <h4 class="font-black uppercase text-sm mb-2">Campus Hours</h4>
+                                <p class="text-sm">Mon - Sat: 8:00 AM - 9:00 PM</p>
+                                <p class="text-sm text-red-600">Sunday: Closed</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="neo-card overflow-hidden h-80">
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13192.356230896023!2d72.0464627!3d34.2057393!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ded7361483320f%3A0x46729a426ea2892c!2sProfessional%20Grooming%20Academy%20Tawab%20Market%2C%20Gujjar%20Garhi%20Road%2C%20Baghdada%2C%20Mardan!5e0!3m2!1sen!2s!4v1703590000000!5m2!1sen!2s" 
+                            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 2. ENROLLMENT FORM VIEW -->
+    <section id="admissionView" class="py-20 px-6 bg-blue-600 min-h-screen">
+        <div class="max-w-2xl mx-auto bg-white neo-card p-10">
+            <button onclick="showView('home')" class="font-black underline mb-6">← BACK TO HOME</button>
+            <h2 class="text-4xl font-black mb-8 uppercase italic underline decoration-blue-500">Online Enrollment</h2>
+            
+            <div id="formError" class="hidden bg-red-100 border-2 border-red-600 p-4 mb-6 font-bold text-red-700 uppercase text-sm italic">
+                ⚠️ Invalid Pakistani Number. Please enter a serious 11-digit number starting with 03.
+            </div>
+
+            <form id="enrollmentForm" onsubmit="handleEnrollment(event)" class="space-y-6">
+                <div>
+                    <label class="block font-black uppercase text-xs mb-2">Full Student Name</label>
+                    <input type="text" id="studName" required placeholder="Enter your full name" class="w-full border-4 border-black p-4 text-xl outline-none focus:bg-blue-50 transition-colors">
+                </div>
+                <div>
+                    <label class="block font-black uppercase text-xs mb-2">Pakistan WhatsApp Number (11 Digits)</label>
+                    <input type="tel" id="studPhone" required maxlength="11" placeholder="e.g. 03001234567" class="w-full border-4 border-black p-4 text-xl outline-none focus:bg-blue-50 transition-colors">
+                    <p class="text-[10px] font-bold text-gray-500 mt-2 uppercase">Must be a serious number starting with 03</p>
+                </div>
+                <div>
+                    <label class="block font-black uppercase text-xs mb-2">Desired Course</label>
+                    <select id="studCourse" class="w-full border-4 border-black p-4 text-xl outline-none bg-white font-black">
+                        <option>DIT (Computer Diploma)</option>
+                        <option>Computer Science</option>
+                        <option>NEBOSH IGC</option>
+                        <option>IOSH Working Safely</option>
+                        <option>Mathematics Tutoring</option>
+                        <option>Physics Tutoring</option>
+                        <option>English Tutoring</option>
+                        <option>Professional Grooming</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full neo-btn bg-black text-white py-6 text-2xl font-black uppercase italic">
+                    Submit Enrollment
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- 3. SUCCESS VIEW WITH PDF OPTION -->
+    <section id="successView" class="py-20 px-6 bg-green-500 min-h-screen">
+        <div class="max-w-2xl mx-auto bg-white neo-card p-10 text-center">
+            <div class="text-7xl mb-6">✅</div>
+            <h2 class="text-4xl font-black mb-4 uppercase italic">Application Submitted!</h2>
+            <p class="text-lg font-bold text-gray-700 mb-10">Your enrollment for <span id="successCourse" class="text-blue-600"></span> has been received.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="downloadPDF()" class="neo-btn bg-black text-white py-4 font-black uppercase text-sm">
+                    📄 Download Receipt PDF
+                </button>
+                <button id="waNotifyBtn" class="neo-btn bg-green-500 text-white py-4 font-black uppercase text-sm">
+                    💬 Notify Academy (WhatsApp)
+                </button>
+            </div>
+            
+            <button onclick="showView('home')" class="mt-10 font-black underline block w-full">Return Home</button>
+        </div>
+    </section>
+
+    <!-- 4. ADMIN VIEW -->
+    <section id="adminView" class="py-12 px-6 bg-gray-100 min-h-screen">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h2 class="text-4xl font-black uppercase italic tracking-tighter">Student Database</h2>
+                    <p class="font-bold text-gray-500">Manage all registered applications</p>
+                </div>
+                <button onclick="showView('home')" class="neo-btn bg-white px-6 py-2 font-black uppercase">Exit Admin</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <div class="neo-card bg-white p-8">
+                    <div class="text-xs font-black uppercase text-gray-500">Total Applicants</div>
+                    <div class="text-5xl font-black" id="statTotal">0</div>
+                </div>
+                <div class="neo-card bg-white p-8">
+                    <div class="text-xs font-black uppercase text-gray-500">Unreviewed</div>
+                    <div class="text-5xl font-black text-blue-600" id="statNew">0</div>
+                </div>
+            </div>
+
+            <div class="neo-card bg-white overflow-hidden">
+                <div class="overflow-x-auto custom-scroll">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-black text-white uppercase text-xs">
+                            <tr>
+                                <th class="p-4">Reg ID</th>
+                                <th class="p-4">Name</th>
+                                <th class="p-4">Phone</th>
+                                <th class="p-4">Course</th>
+                                <th class="p-4 text-center">Status</th>
+                                <th class="p-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="font-bold divide-y-2 divide-gray-100">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Update this to your uncle's real WhatsApp number
+        const UNCLE_PHONE = "03035733357"; 
+        
+        let studentDB = JSON.parse(localStorage.getItem('pga_enrollments')) || [];
+        let currentEnrollment = null;
+
+        function showView(view) {
+            document.getElementById('homeView').style.display = view === 'home' ? 'block' : 'none';
+            document.getElementById('admissionView').style.display = view === 'admission' ? 'block' : 'none';
+            document.getElementById('successView').style.display = view === 'success' ? 'block' : 'none';
+            document.getElementById('adminView').style.display = view === 'admin' ? 'block' : 'none';
+            if(view === 'admin') renderAdmin();
+            window.scrollTo(0,0);
+        }
+
+        function handleEnrollment(e) {
+            e.preventDefault();
+            
+            const phoneInput = document.getElementById('studPhone');
+            const phoneVal = phoneInput.value.trim();
+            const errorBox = document.getElementById('formError');
+
+            // --- STRICT PAKISTANI NUMBER VALIDATION ---
+            // 1. Must be 11 digits
+            // 2. Must start with 03
+            // 3. Must be numeric only
+            const isNumeric = /^\d+$/.test(phoneVal);
+            const isValidPakNumber = phoneVal.startsWith('03') && phoneVal.length === 11 && isNumeric;
+
+            if (!isValidPakNumber) {
+                errorBox.classList.remove('hidden');
+                phoneInput.classList.add('error-shake');
+                setTimeout(() => phoneInput.classList.remove('error-shake'), 500);
+                window.scrollTo(0, 0);
+                return;
+            }
+
+            errorBox.classList.add('hidden');
+
+            const newApplicant = {
+                id: 'PGA-' + Math.floor(10000 + Math.random() * 90000),
+                name: document.getElementById('studName').value,
+                phone: phoneVal,
+                course: document.getElementById('studCourse').value,
+                status: 'Received',
+                date: new Date().toLocaleDateString()
+            };
+
+            studentDB.push(newApplicant);
+            currentEnrollment = newApplicant;
+            localStorage.setItem('pga_enrollments', JSON.stringify(studentDB));
+            
+            // Setup Success View
+            document.getElementById('successCourse').innerText = newApplicant.course;
+            
+            // Setup WhatsApp link
+            const waMsg = `Hello Professional Academy, I want to enroll.\nName: ${newApplicant.name}\nCourse: ${newApplicant.course}\nPhone: ${newApplicant.phone}\nReg ID: ${newApplicant.id}`;
+            document.getElementById('waNotifyBtn').onclick = () => {
+                window.open(`https://wa.me/${UNCLE_PHONE}?text=${encodeURIComponent(waMsg)}`, '_blank');
+            };
+
+
+
+
+            e.target.reset();
+            showView('success');
+        }
+
+        function downloadPDF() {
+            if (!currentEnrollment) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFillColor(0, 0, 0);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.text("PROFESSIONAL ACADEMY MARDAN", 20, 25);
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.text("ENROLLMENT CONFIRMATION", 20, 60);
+            
+            doc.setFontSize(12);
+            doc.text(`Registration ID: ${currentEnrollment.id}`, 20, 80);
+            doc.text(`Student Name: ${currentEnrollment.name}`, 20, 90);
+            doc.text(`Course: ${currentEnrollment.course}`, 20, 100);
+            doc.text(`Contact: ${currentEnrollment.phone}`, 20, 110);
+            doc.text(`Date: ${currentEnrollment.date}`, 20, 120);
+            
+            doc.setFontSize(10);
+            doc.text("Please bring this receipt to the academy office.", 20, 150);
+            doc.text("Location: Tawab Market, Gujjar Garhi Road, Baghdada, Mardan", 20, 160);
+            
+            doc.save(`${currentEnrollment.name}_Enrollment.pdf`);
+        }
+
+        function renderAdmin() {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+            let unreviewed = 0;
+
+            studentDB.forEach((s, index) => {
+                if(s.status === 'Received') unreviewed++;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-4 text-blue-600">#${s.id}</td>
+                        <td class="p-4">${s.name}</td>
+                        <td class="p-4">${s.phone}</td>
+                        <td class="p-4 text-xs font-black uppercase text-blue-800">${s.course}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="toggleStatus(${index})" class="${s.status === 'Reviewed' ? 'status-reviewed' : 'status-received'}">
+                                ${s.status}
+                            </button>
+                        </td>
+                        <td class="p-4 text-right">
+                            <button onclick="deleteRecord(${index})" class="text-red-500 font-black hover:underline transition-all">DELETE</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('statTotal').innerText = studentDB.length;
+            document.getElementById('statNew').innerText = unreviewed;
+        }
+
+        function toggleStatus(index) {
+            studentDB[index].status = studentDB[index].status === 'Received' ? 'Reviewed' : 'Received';
+            localStorage.setItem('pga_enrollments', JSON.stringify(studentDB));
+            renderAdmin();
+        }
+
+        function deleteRecord(index) {
+            if(confirm("Permanently delete this enrollment?")) {
+                studentDB.splice(index, 1);
+                localStorage.setItem('pga_enrollments', JSON.stringify(studentDB));
+                renderAdmin();
+            }
+        }
+    </script>
+</body>
+</html>
